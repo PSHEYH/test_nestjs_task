@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Staff, StaffPosition } from './staff.entity';
@@ -52,7 +56,6 @@ export class StaffService {
 
     switch (staff.position) {
       case StaffPosition.EMPLOYEE:
-        console.log(' -- Employee --');
         const additionalSalary =
           numberOfYears * 3 > 30
             ? this._defaultSalary * 0.3
@@ -60,7 +63,6 @@ export class StaffService {
         return this._defaultSalary + additionalSalary;
 
       case StaffPosition.MANAGER:
-        console.log(' -- Manager --');
         const additionalSalaryManagerByYears =
           numberOfYears * 5 > 40
             ? this._defaultSalary * 0.4
@@ -94,7 +96,6 @@ export class StaffService {
           subordinateSumSalary
         );
       case StaffPosition.SALES:
-        console.log('-- Sales --');
         const additionalSalarySalesByYears =
           numberOfYears > 35
             ? this._defaultSalary * 0.35
@@ -195,6 +196,10 @@ export class StaffService {
       where: { id: id },
       relations: { subordinates: true },
     });
+
+    if (staff == null) {
+      throw new NotFoundException('Staff not found');
+    }
 
     const result: StaffSalaryResponse = {
       id: staff.id,
